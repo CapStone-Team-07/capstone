@@ -52,6 +52,7 @@ import AlertDistribution from '@hooks/components/charts/AlertDistribution';
 // Import dashboard components
 import ThreatHunting from '@hooks/components/dashboard/ThreatHunting';
 import Configuration from '@hooks/components/dashboard/Configuration';
+import Vulnerabilities from '@hooks/components/dashboard/Vulnerabilities';
 
 // Mock data generation functions
 const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -843,7 +844,7 @@ const MainContent = () => {
    case 'threats':
      return <ThreatHunting />;
    case 'vulnerabilities':
-     return <VulnerabilitiesView />;
+     return <Vulnerabilities />;
    case 'config':
      return <Configuration />;
    case 'reports':
