@@ -246,12 +246,12 @@ const LoginPage = () => {
               </div>
             )}
 
-            {/* Demo Credentials */}
-            <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3 text-blue-300 text-sm">
+            {/* Demo Credentials Commenting for now*/}
+            {/* <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3 text-blue-300 text-sm">
               <p className="font-medium mb-1">Demo Credentials:</p>
               <p>Username: <span className="font-mono">admin</span></p>
               <p>Password: <span className="font-mono">admin</span></p>
-            </div>
+            </div> */}
 
             <button
               onClick={handleSubmit}
