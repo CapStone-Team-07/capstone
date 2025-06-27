@@ -1,4 +1,4 @@
-// New Try Integrating ThreatHunting
+// Updated page.jsx with Assets Monitored Navigation
 "use client"
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import {
@@ -53,6 +53,7 @@ import AlertDistribution from '@hooks/components/charts/AlertDistribution';
 import ThreatHunting from '@hooks/components/dashboard/ThreatHunting';
 import Configuration from '@hooks/components/dashboard/Configuration';
 import Vulnerabilities from '@hooks/components/dashboard/Vulnerabilities';
+import AssetsMonitored from '@hooks/components/charts/AssetsMonitored';
 
 // Mock data generation functions
 const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -94,56 +95,6 @@ const generateAlertDistribution = () => {
     value: Math.round((item.count / total) * 100)
   }));
 };
-
-// Generate threat hunting data | Fetching from db.json
-// const generateThreatHuntingData = () => {
-//   const severities = ['Critical', 'High', 'Medium', 'Low'];
-//   const categories = ['Malware', 'Phishing', 'Brute Force', 'Data Exfiltration', 'Insider Threat', 'Advanced Persistent Threat', 'Ransomware', 'DDoS'];
-//   const statuses = ['Active', 'Investigating', 'Contained', 'Resolved', 'False Positive'];
-//   const sources = ['Firewall', 'IDS/IPS', 'Endpoint Detection', 'Email Security', 'Network Monitor', 'SIEM', 'Threat Intel'];
-//   const countries = ['United States', 'China', 'Russia', 'Germany', 'United Kingdom', 'France', 'India', 'Brazil'];
-//   const attackTypes = ['SQL Injection', 'Cross-Site Scripting', 'Buffer Overflow', 'Man-in-the-Middle', 'Zero-Day Exploit', 'Social Engineering'];
-
-//   const threats = [];
-//   for (let i = 0; i < 150; i++) {
-//     const severity = severities[Math.floor(Math.random() * severities.length)];
-//     const category = categories[Math.floor(Math.random() * categories.length)];
-//     const status = statuses[Math.floor(Math.random() * statuses.length)];
-//     const source = sources[Math.floor(Math.random() * sources.length)];
-//     const country = countries[Math.floor(Math.random() * countries.length)];
-//     const attackType = attackTypes[Math.floor(Math.random() * attackTypes.length)];
-
-//     const baseTime = Date.now() - (Math.random() * 7 * 24 * 60 * 60 * 1000);
-//     const riskScore = Math.floor(Math.random() * 100) + 1;
-
-//     threats.push({
-//       id: `THR-${String(i + 1).padStart(6, '0')}`,
-//       title: `${category} - ${attackType}`,
-//       description: `Suspicious ${category.toLowerCase()} activity detected from ${country}`,
-//       severity,
-//       category,
-//       status,
-//       source,
-//       riskScore,
-//       sourceIP: `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-//       targetIP: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-//       country,
-//       timestamp: new Date(baseTime).toISOString(),
-//       lastActivity: new Date(baseTime + Math.random() * 24 * 60 * 60 * 1000).toISOString(),
-//       affectedAssets: Math.floor(Math.random() * 50) + 1,
-//       confidence: Math.floor(Math.random() * 40) + 60,
-//       attackVector: attackType,
-//       protocol: ['TCP', 'UDP', 'HTTP', 'HTTPS', 'FTP', 'SSH'][Math.floor(Math.random() * 6)],
-//       port: Math.floor(Math.random() * 65535) + 1,
-//       iocs: Math.floor(Math.random() * 20) + 1,
-//       mitreTactics: ['Initial Access', 'Execution', 'Persistence', 'Privilege Escalation', 'Defense Evasion'][Math.floor(Math.random() * 5)],
-//       analyst: ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'David Brown'][Math.floor(Math.random() * 5)],
-//       starred: Math.random() > 0.8,
-//       flagged: Math.random() > 0.7
-//     });
-//   }
-//   return threats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-// };
 
 // Authentication Context
 const AuthContext = createContext();
@@ -222,7 +173,7 @@ const useNavigation = () => {
 
 // Login Component
 const LoginPage = () => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ username: 'admin', password: 'admin' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, loading } = useAuth();
@@ -295,6 +246,7 @@ const LoginPage = () => {
               </div>
             )}
 
+            {/* Demo Credentials */}
             <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3 text-blue-300 text-sm">
               <p className="font-medium mb-1">Demo Credentials:</p>
               <p>Username: <span className="font-mono">admin</span></p>
@@ -352,6 +304,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'Vulnerabilities',
       icon: Activity,
       breadcrumb: ['Security', 'Vulnerabilities']
+    },
+    {
+      id: 'assets',
+      label: 'Assets Monitored',
+      icon: Server,
+      breadcrumb: ['Assets', 'Monitored Assets']
     },
     {
       id: 'config',
@@ -607,8 +565,10 @@ const DashboardOverview = () => {
     activeThreats: 12,
     criticalVulns: 8,
     securityScore: 87,
-    assetsMonitored: 1247
+    assetsMonitored: 147
   });
+
+  const { navigate } = useNavigation();
 
   const threatTimelineData = generateThreatTimeline(30);
   const alertDistributionData = generateAlertDistribution();
@@ -620,7 +580,8 @@ const DashboardOverview = () => {
       change: '+3',
       trend: 'up',
       color: 'red',
-      icon: AlertTriangle
+      icon: AlertTriangle,
+      clickable: false
     },
     {
       title: 'Critical Vulnerabilities',
@@ -628,7 +589,8 @@ const DashboardOverview = () => {
       change: '-2',
       trend: 'down',
       color: 'yellow',
-      icon: XCircle
+      icon: XCircle,
+      clickable: false
     },
     {
       title: 'Security Score',
@@ -636,7 +598,8 @@ const DashboardOverview = () => {
       change: '+5%',
       trend: 'up',
       color: 'green',
-      icon: CheckCircle
+      icon: CheckCircle,
+      clickable: false
     },
     {
       title: 'Assets Monitored',
@@ -644,9 +607,17 @@ const DashboardOverview = () => {
       change: '+47',
       trend: 'up',
       color: 'blue',
-      icon: Activity
+      icon: Activity,
+      clickable: true,
+      onClick: () => navigate('assets', ['Assets', 'Monitored Assets'])
     }
   ];
+
+  const handleMetricClick = (metric) => {
+    if (metric.clickable && metric.onClick) {
+      metric.onClick();
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -665,7 +636,15 @@ const DashboardOverview = () => {
         {metricCards.map((metric, index) => {
           const Icon = metric.icon;
           return (
-            <div key={index} className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <div 
+              key={index} 
+              className={`bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 ${
+                metric.clickable 
+                  ? 'cursor-pointer hover:border-blue-500 hover:shadow-lg hover:scale-105 transform' 
+                  : ''
+              }`}
+              onClick={() => handleMetricClick(metric)}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${metric.color === 'red' ? 'bg-red-500/20 text-red-400' :
                   metric.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -683,6 +662,12 @@ const DashboardOverview = () => {
               <div>
                 <p className="text-2xl font-bold text-white mb-1">{metric.value}</p>
                 <p className="text-gray-400 text-sm">{metric.title}</p>
+                {metric.clickable && (
+                  <p className="text-blue-400 text-xs mt-2 flex items-center space-x-1">
+                    <span>Click to view details</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </p>
+                )}
               </div>
             </div>
           );
@@ -790,9 +775,7 @@ const DashboardOverview = () => {
   );
 };
 
-
 // Placeholder Components for other views
-// Demo
 const VulnerabilitiesView = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold text-white mb-4">Vulnerabilities</h1>
@@ -804,7 +787,6 @@ const VulnerabilitiesView = () => (
   </div>
 );
 
-// Demo
 const ConfigurationView = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold text-white mb-4">Configuration</h1>
@@ -816,7 +798,6 @@ const ConfigurationView = () => (
   </div>
 );
 
-// Demo
 const ReportsView = () => (
   <div className="p-6">
     <h1 className="text-2xl font-bold text-white mb-4">Reports</h1>
@@ -843,6 +824,8 @@ const MainContent = () => {
       return <Configuration />;
     case 'reports':
       return <ReportsView />;
+    case 'assets':
+      return <AssetsMonitored />;
     default:
       return <DashboardOverview />;
   }
