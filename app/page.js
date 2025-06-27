@@ -1,103 +1,579 @@
-import Image from "next/image";
+"use client"
+import React, { useState, createContext, useContext, useEffect } from 'react';
+import { 
+  Shield, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  Menu, 
+  X, 
+  Home, 
+  Search, 
+  Bell, 
+  Settings, 
+  User, 
+  LogOut,
+  Activity,
+  AlertTriangle,
+  FileText,
+  Wrench,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Clock
+} from 'lucide-react';
 
-export default function Home() {
+// Import ThreatTimeline component
+import ThreatTimeline from '@hooks/components/charts/ThreatTimeline';
+import { generateThreatTimeline, generateAlertDistribution } from '@hooks/lib/mock-data';
+
+// Authentication Context
+const AuthContext = createContext();
+
+const AuthProvider = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const login = async (credentials) => {
+    setLoading(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (credentials.username === 'admin' && credentials.password === 'admin') {
+      setIsAuthenticated(true);
+      setUser({
+        name: 'Security Administrator',
+        email: 'admin@cybersec.com',
+        role: 'SOC Manager',
+        avatar: '👤'
+      });
+      setLoading(false);
+      return { success: true };
+    }
+    
+    setLoading(false);
+    return { success: false, error: 'Invalid credentials' };
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// Login Component
+const LoginPage = () => {
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const { login, loading } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    const result = await login(credentials);
+    if (!result.success) {
+      setError(result.error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }} />
+      </div>
+
+      <div className="w-full max-w-md">
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">CyberSecure Platform</h1>
+          <p className="text-gray-300">Enterprise Security Operations Center</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Login Form */}
+        <div className="bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl p-8 shadow-2xl">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={credentials.password}
+                  onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors pr-12"
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3 text-blue-300 text-sm">
+              <p className="font-medium mb-1">Demo Credentials:</p>
+              <p>Username: <span className="font-mono">admin</span></p>
+              <p>Password: <span className="font-mono">admin</span></p>
+            </div>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Authenticating...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-5 h-5" />
+                  <span>Sign In</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="text-center mt-6 text-gray-400 text-sm">
+          <p>Secure access to your cybersecurity operations</p>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+// Dashboard Layout Components
+const Sidebar = ({ isOpen, onClose }) => {
+  const [activeItem, setActiveItem] = useState('dashboard');
+  const { user, logout } = useAuth();
+
+  const navigationItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'threats', label: 'Threat Hunting', icon: AlertTriangle },
+    { id: 'vulnerabilities', label: 'Vulnerabilities', icon: Activity },
+    { id: 'config', label: 'Configuration', icon: Wrench },
+    { id: 'reports', label: 'Reports', icon: FileText },
+  ];
+
+  return (
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 h-full w-64 bg-gray-800 border-r border-gray-700 z-50 transform transition-transform duration-300 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 lg:static lg:z-auto`}>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-bold text-white">CyberSecure</span>
+          </div>
+          <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeItem === item.id;
+              
+              return (
+                <li key={item.id}>
+                  <button
+                    onClick={() => setActiveItem(item.id)}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      isActive 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* User Profile */}
+        <div className="p-4 border-t border-gray-700">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+              <p className="text-xs text-gray-400 truncate">{user?.role}</p>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            className="w-full flex items-center space-x-2 px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm">Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+const Header = ({ onMenuClick }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { user } = useAuth();
+
+  const notifications = [
+    { id: 1, type: 'critical', message: 'Critical vulnerability detected in web server', time: '2 min ago' },
+    { id: 2, type: 'warning', message: 'Unusual login activity from new location', time: '15 min ago' },
+    { id: 3, type: 'info', message: 'Weekly security report is ready', time: '1 hour ago' },
+  ];
+
+  return (
+    <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden text-gray-300 hover:text-white"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          
+          <nav className="hidden md:flex items-center space-x-2 text-sm text-gray-400">
+            <span>Dashboard</span>
+            <span>/</span>
+            <span className="text-white">Overview</span>
+          </nav>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          {/* Search */}
+          <div className="hidden md:flex items-center">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search threats, assets..."
+                className="pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
+              />
+            </div>
+          </div>
+
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 text-gray-300 hover:text-white transition-colors"
+            >
+              <Bell className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 top-full mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                <div className="p-3 border-b border-gray-700">
+                  <h3 className="font-medium text-white">Notifications</h3>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div key={notification.id} className="p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
+                      <div className="flex items-start space-x-3">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${
+                          notification.type === 'critical' ? 'bg-red-500' :
+                          notification.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`} />
+                        <div className="flex-1">
+                          <p className="text-sm text-white">{notification.message}</p>
+                          <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User Menu */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+            <span className="hidden md:block text-sm text-white">{user?.name}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+// Alert Distribution Chart Component (Placeholder)
+const AlertDistributionChart = () => {
+  const alertData = generateAlertDistribution();
+  
+  return (
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+      <h3 className="text-lg font-semibold text-white mb-4">Alert Distribution</h3>
+      <div className="space-y-4">
+        {alertData.map((item, index) => (
+          <div key={index} className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
+              <span className="text-white text-sm">{item.name}</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-24 bg-gray-700 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${item.value}%`, 
+                    backgroundColor: item.color 
+                  }}
+                />
+              </div>
+              <span className="text-white text-sm font-medium w-8">{item.value}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Dashboard Overview Component
+const DashboardOverview = () => {
+  const [metrics, setMetrics] = useState({
+    activeThreats: 12,
+    criticalVulns: 8,
+    securityScore: 87,
+    assetsMonitored: 1247
+  });
+
+  // Generate threat timeline data
+  const threatTimelineData = generateThreatTimeline(30);
+
+  const metricCards = [
+    {
+      title: 'Active Threats',
+      value: metrics.activeThreats,
+      change: '+3',
+      trend: 'up',
+      color: 'red',
+      icon: AlertTriangle
+    },
+    {
+      title: 'Critical Vulnerabilities',
+      value: metrics.criticalVulns,
+      change: '-2',
+      trend: 'down',
+      color: 'yellow',
+      icon: XCircle
+    },
+    {
+      title: 'Security Score',
+      value: `${metrics.securityScore}%`,
+      change: '+5%',
+      trend: 'up',
+      color: 'green',
+      icon: CheckCircle
+    },
+    {
+      title: 'Assets Monitored',
+      value: metrics.assetsMonitored.toLocaleString(),
+      change: '+47',
+      trend: 'up',
+      color: 'blue',
+      icon: Activity
+    }
+  ];
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Welcome Section */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Security Dashboard</h1>
+          <p className="text-gray-400 mt-1">Welcome back! Here's your security overview.</p>
+        </div>
+        <div className="flex items-center space-x-2 text-sm text-gray-400">
+          <Clock className="w-4 h-4" />
+          <span>Last updated: 2 minutes ago</span>
+        </div>
+      </div>
+
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {metricCards.map((metric, index) => {
+          const Icon = metric.icon;
+          return (
+            <div key={index} className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  metric.color === 'red' ? 'bg-red-500/20 text-red-400' :
+                  metric.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+                  metric.color === 'green' ? 'bg-green-500/20 text-green-400' :
+                  'bg-blue-500/20 text-blue-400'
+                }`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className={`flex items-center space-x-1 text-sm ${
+                  metric.trend === 'up' ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  <TrendingUp className={`w-4 h-4 ${metric.trend === 'down' ? 'rotate-180' : ''}`} />
+                  <span>{metric.change}</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-white mb-1">{metric.value}</p>
+                <p className="text-gray-400 text-sm">{metric.title}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Charts Section */}
+      <div className="space-y-6">
+        {/* Threat Timeline Chart - Full Width */}
+        <ThreatTimeline 
+          data={threatTimelineData} 
+          title="Threat Detection Timeline"
+          height={400}
+        />
+        
+        {/* Alert Distribution Chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AlertDistributionChart />
+          
+          {/* Additional metrics or charts can go here */}
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">System Health</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300">CPU Usage</span>
+                <span className="text-white">67%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '67%' }}></div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300">Memory Usage</span>
+                <span className="text-white">45%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full" style={{ width: '45%' }}></div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300">Network Activity</span>
+                <span className="text-white">82%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '82%' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main App Component
+const App = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="flex">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 lg:ml-0">
+          <Header onMenuClick={() => setSidebarOpen(true)} />
+          <main className="min-h-screen">
+            <DashboardOverview />
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Root Application with Provider
+export default function CybersecurityPlatform() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+} 
