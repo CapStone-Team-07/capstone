@@ -70,6 +70,8 @@ const Alerts = () => {
   const [selectedAlerts, setSelectedAlerts] = useState(new Set());
   const [notifications, setNotifications] = useState([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [alertToAssign, setAlertToAssign] = useState(null);
 
   // Filter states for Wazuh-specific data
   const [filters, setFilters] = useState({
@@ -100,6 +102,16 @@ const Alerts = () => {
     '/var/log/auth.log', '/var/log/syslog', '/var/log/apache2/access.log',
     '/var/log/apache2/error.log', 'Security', 'Application', 'System',
     'WinEventLog', 'osquery', 'command', 'full_command'
+  ];
+
+  // Available users for assignment
+  const availableUsers = [
+    { id: 'user-001', name: 'Fidan Huseynova', role: 'Senior SOC Analyst', email: 'f.huseynova@company.com', avatar: '👧' },
+    { id: 'user-002', name: 'Hasan Hamidov', role: 'SOC Analyst', email: 'h.hamidov@company.com', avatar: '👨🏿‍🦲' },
+    { id: 'user-003', name: 'Gulyaz Ismayilzada', role: 'Security Engineer', email: 'g.ismayilzada@company.com', avatar: '👩‍💼' },
+    // { id: 'user-004', name: 'Emily Davis', role: 'Incident Responder', email: 'emily.davis@company.com', avatar: '👩‍💼' },
+    // { id: 'user-005', name: 'David Wilson', role: 'Threat Analyst', email: 'david.wilson@company.com', avatar: '🧔🏽‍♂️' },
+    // { id: 'user-006', name: 'Lisa Rodriguez', role: 'SOC Manager', email: 'lisa.rodriguez@company.com', avatar: '👩‍💻' }
   ];
 
   // Initialize with Wazuh-formatted mock data
@@ -199,7 +211,9 @@ const Alerts = () => {
         flagged: Math.random() > 0.8,
         acknowledged: Math.random() > 0.7,
         tags: Math.random() > 0.8 ? ['critical', 'investigate'] : [],
-        notes: ''
+        notes: '',
+        assignedTo: Math.random() > 0.6 ? availableUsers[Math.floor(Math.random() * availableUsers.length)] : null,
+        assignedAt: Math.random() > 0.6 ? new Date(baseTime + 60000).toISOString() : null
       };
 
       mockAlerts.push(alert);
@@ -230,7 +244,51 @@ const Alerts = () => {
     }, 5000);
   };
 
-  // Archive alerts action (Wazuh-specific)
+  // Assign alert to user
+  const handleAssignAlert = async (alertId, user) => {
+    try {
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          alert.id === alertId 
+            ? {
+                ...alert,
+                assignedTo: user,
+                assignedAt: new Date().toISOString()
+              }
+            : alert
+        )
+      );
+
+      showNotification(`Alert assigned to ${user.name}`, 'success');
+      setShowAssignModal(false);
+      setAlertToAssign(null);
+      
+    } catch (error) {
+      showNotification('Failed to assign alert. Please try again.', 'error');
+    }
+  };
+
+  // Unassign alert
+  const handleUnassignAlert = async (alertId) => {
+    try {
+      setAlerts(prevAlerts => 
+        prevAlerts.map(alert => 
+          alert.id === alertId 
+            ? {
+                ...alert,
+                assignedTo: null,
+                assignedAt: null
+              }
+            : alert
+        )
+      );
+
+      showNotification('Alert unassigned successfully', 'success');
+      
+    } catch (error) {
+      showNotification('Failed to unassign alert. Please try again.', 'error');
+    }
+  };
   const handleArchiveAlerts = async () => {
     if (selectedAlerts.size === 0) return;
     
@@ -316,11 +374,11 @@ const Alerts = () => {
         alert.rule.groups.some(group => filters.rule_groups.includes(group))
       );
     }
-    if (filters.agent_name.length > 0) {
-      filtered = filtered.filter(alert => filters.agent_name.includes(alert.agent.name));
-    }
     if (filters.location.length > 0) {
       filtered = filtered.filter(alert => filters.location.includes(alert.location));
+    }
+    if (filters.agent_name.length > 0) {
+      filtered = filtered.filter(alert => filters.agent_name.includes(alert.agent.name));
     }
 
     filtered = filtered.filter(alert => 
@@ -471,6 +529,91 @@ const Alerts = () => {
           </div>
         </div>
       ))}
+    </div>
+  );
+
+  // User Assignment Modal
+  const UserAssignmentModal = ({ alert, onClose }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full">
+        <div className="p-6 border-b border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Assign Alert</h3>
+              <p className="text-sm text-gray-400 mt-1">Rule {alert?.rule.id} - {alert?.rule.description}</p>
+            </div>
+            <button 
+              onClick={onClose} 
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          <div className="space-y-4">
+            {/* Current Assignment */}
+            {alert?.assignedTo && (
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
+                      {alert.assignedTo.avatar}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{alert.assignedTo.name}</p>
+                      <p className="text-blue-400 text-sm">{alert.assignedTo.role}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleUnassignAlert(alert.id)}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+                  >
+                    Unassign
+                  </button>
+                </div>
+                <p className="text-gray-400 text-xs mt-2">
+                  Assigned {alert.assignedAt ? formatTimeAgo(alert.assignedAt) : 'recently'}
+                </p>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                {alert?.assignedTo ? 'Reassign to:' : 'Assign to:'}
+              </label>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {availableUsers
+                  .filter(user => user.id !== alert?.assignedTo?.id)
+                  .map(user => (
+                  <button
+                    key={user.id}
+                    onClick={() => handleAssignAlert(alert.id, user)}
+                    className="w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors group"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        {user.avatar}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium group-hover:text-blue-400 transition-colors">
+                          {user.name}
+                        </p>
+                        <p className="text-gray-400 text-sm">{user.role}</p>
+                        <p className="text-gray-500 text-xs">{user.email}</p>
+                      </div>
+                      <div className="text-gray-400 group-hover:text-blue-400 transition-colors">
+                        <Users className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -1361,6 +1504,9 @@ const Alerts = () => {
                   <span className="text-gray-300 font-medium text-sm">Source IP</span>
                 </th>
                 <th className="p-3 text-left">
+                  <span className="text-gray-300 font-medium text-sm">Assigned</span>
+                </th>
+                <th className="p-3 text-left">
                   <button
                     onClick={() => handleSort('timestamp')}
                     className="flex items-center space-x-1 text-gray-300 hover:text-white font-medium text-sm"
@@ -1375,7 +1521,7 @@ const Alerts = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="p-8 text-center">
+                  <td colSpan="10" className="p-8 text-center">
                     <div className="flex items-center justify-center space-x-2 text-gray-400">
                       <RefreshCw className="w-5 h-5 animate-spin" />
                       <span>Loading Wazuh alerts...</span>
@@ -1384,7 +1530,7 @@ const Alerts = () => {
                 </tr>
               ) : paginatedAlerts.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-8 text-center text-gray-400">
+                  <td colSpan="10" className="p-8 text-center text-gray-400">
                     No alerts found matching your criteria
                   </td>
                 </tr>
@@ -1464,6 +1610,21 @@ const Alerts = () => {
                       )}
                     </td>
                     <td className="p-3">
+                      {alert.assignedTo ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs">
+                            {alert.assignedTo.avatar}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-white text-sm truncate">{alert.assignedTo.name}</p>
+                            <p className="text-gray-400 text-xs truncate">{alert.assignedTo.role}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-sm">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="p-3">
                       <div className="text-sm text-white">{formatTimeAgo(alert.timestamp)}</div>
                       <div className="text-xs text-gray-400">{new Date(alert.timestamp).toLocaleDateString()}</div>
                     </td>
@@ -1475,6 +1636,17 @@ const Alerts = () => {
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setAlertToAssign(alert);
+                            setShowAssignModal(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 rounded transition-colors"
+                          title="Assign User"
+                        >
+                          <Users className="w-4 h-4" />
                         </button>
                         
                         <button
@@ -1576,9 +1748,25 @@ const Alerts = () => {
                     </div>
                   </div>
 
+                  {/* Assignment Info */}
+                  {alert.assignedTo && (
+                    <div>
+                      <span className="text-gray-400 text-sm">Assigned to:</span>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs">
+                          {alert.assignedTo.avatar}
+                        </div>
+                        <div>
+                          <p className="text-white text-sm">{alert.assignedTo.name}</p>
+                          <p className="text-gray-400 text-xs">{alert.assignedTo.role}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Card Actions */}
                   <div className="flex items-center justify-between pt-2 border-t border-gray-600">
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-400 truncate">
                       Location: {alert.location}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -1587,6 +1775,16 @@ const Alerts = () => {
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors"
                       >
                         View
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAlertToAssign(alert);
+                          setShowAssignModal(true);
+                        }}
+                        className="p-1 text-gray-400 hover:text-purple-400 transition-colors"
+                        title="Assign User"
+                      >
+                        <Users className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => navigator.clipboard.writeText(JSON.stringify(alert, null, 2))}
@@ -1660,6 +1858,17 @@ const Alerts = () => {
         <WazuhAlertDetailModal
           alert={selectedAlert}
           onClose={() => setSelectedAlert(null)}
+        />
+      )}
+
+      {/* User Assignment Modal */}
+      {showAssignModal && alertToAssign && (
+        <UserAssignmentModal
+          alert={alertToAssign}
+          onClose={() => {
+            setShowAssignModal(false);
+            setAlertToAssign(null);
+          }}
         />
       )}
     </div>

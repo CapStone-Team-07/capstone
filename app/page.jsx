@@ -43,6 +43,7 @@ import {
   Copy,
   Star,
   Flag,
+  ShieldMinus,
   ChevronDown
 } from 'lucide-react';
 
@@ -292,13 +293,13 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       id: 'alerts',
       label: 'Alerts',
-      icon: Filter,
+      icon: AlertTriangle,
       breadcrumb: ['Security', 'Alerts']
     },
     {
       id: 'threats',
       label: 'Threat Hunting',
-      icon: AlertTriangle,
+      icon: ShieldMinus,
       breadcrumb: ['Security', 'Threat Hunting']
     },
     {
