@@ -67,180 +67,129 @@ const AssetsMonitored = () => {
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
-  // Generate mock network assets with realistic topology
+  // Generate simple network topology with your specific devices
   const generateNetworkAssets = useCallback(() => {
     const assetTypes = [
       { type: 'firewall', icon: Shield, color: '#ef4444', category: 'Security' },
       { type: 'router', icon: Router, color: '#3b82f6', category: 'Network' },
-      { type: 'switch', icon: Network, color: '#06b6d4', category: 'Network' },
-      { type: 'server', icon: Server, color: '#10b981', category: 'Compute' },
       { type: 'workstation', icon: Monitor, color: '#f59e0b', category: 'Endpoint' },
-      { type: 'mobile', icon: Smartphone, color: '#8b5cf6', category: 'Endpoint' },
-      { type: 'printer', icon: Printer, color: '#6b7280', category: 'IoT' },
-      { type: 'wifi', icon: Wifi, color: '#ec4899', category: 'Network' },
-      { type: 'cloud', icon: Cloud, color: '#06b6d4', category: 'Cloud' },
-      { type: 'storage', icon: HardDrive, color: '#84cc16', category: 'Storage' }
+      { type: 'printer', icon: Printer, color: '#6b7280', category: 'IoT' }
     ];
 
-    const statuses = ['online', 'offline', 'warning', 'maintenance'];
+    const statuses = ['online', 'offline', 'warning'];
     const criticalities = ['critical', 'high', 'medium', 'low'];
-    const locations = ['HQ-Floor1', 'HQ-Floor2', 'DC-East', 'DC-West', 'Branch-NY', 'Cloud-AWS'];
+    const locations = ['Office-Floor1', 'Office-Floor2'];
 
     const assets = [];
     
-    // Core infrastructure first (centered positioning)
-    const coreAssets = [
-      { type: 'firewall', name: 'Main-Firewall', x: 400, y: 200, connections: ['router-1', 'router-2'] },
-      { type: 'router', name: 'Core-Router-1', x: 200, y: 300, connections: ['switch-1', 'switch-2'] },
-      { type: 'router', name: 'Core-Router-2', x: 600, y: 300, connections: ['switch-3', 'switch-4'] },
-      { type: 'switch', name: 'Access-Switch-1', x: 100, y: 450, connections: [] },
-      { type: 'switch', name: 'Access-Switch-2', x: 300, y: 450, connections: [] },
-      { type: 'switch', name: 'Access-Switch-3', x: 500, y: 450, connections: [] },
-      { type: 'switch', name: 'Access-Switch-4', x: 700, y: 450, connections: [] }
-    ];
-
-    // Add core assets
-    coreAssets.forEach((asset, index) => {
-      const typeInfo = assetTypes.find(t => t.type === asset.type);
-      const status = index < 6 ? 'online' : statuses[Math.floor(Math.random() * statuses.length)];
-      
-      assets.push({
-        id: `${asset.type}-${index + 1}`,
-        name: asset.name,
-        type: asset.type,
-        typeInfo,
-        x: asset.x,
-        y: asset.y,
-        status,
-        criticality: asset.type === 'firewall' ? 'critical' : 
-                    asset.type === 'router' ? 'high' : 'medium',
-        location: index < 4 ? 'HQ-Floor1' : 'HQ-Floor2',
-        ip: `192.168.${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 254) + 1}`,
-        lastSeen: new Date(Date.now() - Math.random() * 3600000),
-        uptime: Math.floor(Math.random() * 365),
-        connections: asset.connections,
-        metadata: {
-          cpu: Math.floor(Math.random() * 100),
-          memory: Math.floor(Math.random() * 100),
-          storage: Math.floor(Math.random() * 100),
-          networkLoad: Math.floor(Math.random() * 100)
-        }
-      });
-    });
-
-    // Add endpoint devices connected to switches
-    const switchPositions = [
-      { x: 100, y: 450, switchId: 'switch-1' },
-      { x: 300, y: 450, switchId: 'switch-2' },
-      { x: 500, y: 450, switchId: 'switch-3' },
-      { x: 700, y: 450, switchId: 'switch-4' }
-    ];
-
-    switchPositions.forEach((pos, switchIndex) => {
-      // Add workstations
-      for (let i = 0; i < 3; i++) {
-        const angle = (i * 60) + (switchIndex * 15);
-        const radius = 80 + (i * 20);
-        const x = pos.x + Math.cos(angle * Math.PI / 180) * radius;
-        const y = pos.y + Math.sin(angle * Math.PI / 180) * radius;
-        
-        const typeInfo = assetTypes.find(t => t.type === 'workstation');
-        assets.push({
-          id: `workstation-${switchIndex + 1}-${i + 1}`,
-          name: `WS-${String.fromCharCode(65 + switchIndex)}${i + 1}`,
-          type: 'workstation',
-          typeInfo,
-          x: Math.max(50, Math.min(750, x)),
-          y: Math.max(50, Math.min(550, y)),
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          criticality: criticalities[Math.floor(Math.random() * criticalities.length)],
-          location: locations[Math.floor(Math.random() * locations.length)],
-          ip: `192.168.${switchIndex + 1}.${i + 10}`,
-          lastSeen: new Date(Date.now() - Math.random() * 3600000),
-          uptime: Math.floor(Math.random() * 365),
-          connections: [pos.switchId],
-          metadata: {
-            cpu: Math.floor(Math.random() * 100),
-            memory: Math.floor(Math.random() * 100),
-            storage: Math.floor(Math.random() * 100),
-            user: `User${switchIndex + 1}${i + 1}`
-          }
-        });
-      }
-
-      // Add some IoT devices
-      if (Math.random() > 0.5) {
-        const typeInfo = assetTypes.find(t => t.type === 'printer');
-        assets.push({
-          id: `printer-${switchIndex + 1}`,
-          name: `Printer-${switchIndex + 1}`,
-          type: 'printer',
-          typeInfo,
-          x: pos.x + 40,
-          y: pos.y + 60,
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          criticality: 'low',
-          location: locations[switchIndex],
-          ip: `192.168.${switchIndex + 1}.200`,
-          lastSeen: new Date(Date.now() - Math.random() * 3600000),
-          uptime: Math.floor(Math.random() * 365),
-          connections: [pos.switchId],
-          metadata: {
-            model: 'HP LaserJet Pro',
-            paperLevel: Math.floor(Math.random() * 100),
-            tonerLevel: Math.floor(Math.random() * 100)
-          }
-        });
-      }
-    });
-
-    // Add servers in data center area
-    const serverTypes = ['web', 'db', 'app', 'mail', 'dns'];
-    serverTypes.forEach((serverType, index) => {
-      const typeInfo = assetTypes.find(t => t.type === 'server');
-      assets.push({
-        id: `server-${serverType}`,
-        name: `${serverType.toUpperCase()}-Server`,
-        type: 'server',
-        typeInfo,
-        x: 50 + (index * 80),
-        y: 100,
-        status: index < 3 ? 'online' : statuses[Math.floor(Math.random() * statuses.length)],
-        criticality: index < 2 ? 'critical' : 'high',
-        location: 'DC-East',
-        ip: `10.0.1.${index + 10}`,
-        lastSeen: new Date(Date.now() - Math.random() * 3600000),
-        uptime: Math.floor(Math.random() * 365),
-        connections: ['router-1'],
-        metadata: {
-          cpu: Math.floor(Math.random() * 100),
-          memory: Math.floor(Math.random() * 100),
-          storage: Math.floor(Math.random() * 100),
-          services: Math.floor(Math.random() * 20) + 5
-        }
-      });
-    });
-
-    // Add cloud resources
-    const cloudTypeInfo = assetTypes.find(t => t.type === 'cloud');
+    // 1. Firewall (gateway to internet) - positioned at top center
+    const firewallInfo = assetTypes.find(t => t.type === 'firewall');
     assets.push({
-      id: 'cloud-aws',
-      name: 'AWS-Cloud',
-      type: 'cloud',
-      typeInfo: cloudTypeInfo,
+      id: 'firewall-1',
+      name: 'Main-Firewall',
+      type: 'firewall',
+      typeInfo: firewallInfo,
       x: 400,
-      y: 50,
+      y: 150,
+      status: 'online',
+      criticality: 'critical',
+      location: 'Office-Floor1',
+      ip: '192.168.1.1',
+      lastSeen: new Date(Date.now() - 30000),
+      uptime: 180,
+      connections: ['router-1'],
+      metadata: {
+        cpu: 25,
+        memory: 45,
+        networkLoad: 30,
+        throughput: '150 Mbps',
+        rules: 245
+      }
+    });
+
+    // 2. Router (connects everything) - positioned below firewall
+    const routerInfo = assetTypes.find(t => t.type === 'router');
+    assets.push({
+      id: 'router-1',
+      name: 'Main-Router',
+      type: 'router',
+      typeInfo: routerInfo,
+      x: 400,
+      y: 280,
       status: 'online',
       criticality: 'high',
-      location: 'Cloud-AWS',
-      ip: '52.91.48.123',
-      lastSeen: new Date(Date.now() - 60000),
-      uptime: 365,
-      connections: ['firewall-1'],
+      location: 'Office-Floor1',
+      ip: '192.168.1.254',
+      lastSeen: new Date(Date.now() - 15000),
+      uptime: 180,
+      connections: ['pc-1', 'pc-2', 'pc-3', 'pc-4', 'pc-5', 'printer-1'],
       metadata: {
-        instances: 12,
-        region: 'us-east-1',
-        cost: '$1,245/month'
+        cpu: 15,
+        memory: 32,
+        networkLoad: 45,
+        connectedDevices: 6,
+        bandwidth: '1 Gbps'
+      }
+    });
+
+    // 3. Five PCs - positioned in a semi-circle around the router
+    const pcPositions = [
+      { x: 150, y: 420, name: 'PC-01' },
+      { x: 280, y: 450, name: 'PC-02' },
+      { x: 400, y: 470, name: 'PC-03' },
+      { x: 520, y: 450, name: 'PC-04' },
+      { x: 650, y: 420, name: 'PC-05' }
+    ];
+
+    const workstationInfo = assetTypes.find(t => t.type === 'workstation');
+    pcPositions.forEach((pos, index) => {
+      const statusIndex = index === 2 ? 1 : 0; // PC-03 is offline for example
+      assets.push({
+        id: `pc-${index + 1}`,
+        name: pos.name,
+        type: 'workstation',
+        typeInfo: workstationInfo,
+        x: pos.x,
+        y: pos.y,
+        status: index === 2 ? 'offline' : (index === 4 ? 'warning' : 'online'),
+        criticality: index < 2 ? 'medium' : 'low',
+        location: index < 3 ? 'Office-Floor1' : 'Office-Floor2',
+        ip: `192.168.1.${10 + index}`,
+        lastSeen: new Date(Date.now() - (index === 2 ? 1800000 : Math.random() * 300000)),
+        uptime: index === 2 ? 0 : Math.floor(Math.random() * 30) + 1,
+        connections: ['router-1'],
+        metadata: {
+          cpu: index === 2 ? 0 : Math.floor(Math.random() * 80) + 10,
+          memory: index === 2 ? 0 : Math.floor(Math.random() * 70) + 20,
+          storage: Math.floor(Math.random() * 60) + 30,
+          user: `User${index + 1}`,
+          os: index % 2 === 0 ? 'Windows 11' : 'Windows 10'
+        }
+      });
+    });
+
+    // 4. Printer - positioned to the side
+    const printerInfo = assetTypes.find(t => t.type === 'printer');
+    assets.push({
+      id: 'printer-1',
+      name: 'Office-Printer',
+      type: 'printer',
+      typeInfo: printerInfo,
+      x: 600,
+      y: 300,
+      status: 'online',
+      criticality: 'low',
+      location: 'Office-Floor1',
+      ip: '192.168.1.200',
+      lastSeen: new Date(Date.now() - 120000),
+      uptime: 45,
+      connections: ['router-1'],
+      metadata: {
+        model: 'HP LaserJet Pro MFP',
+        paperLevel: 75,
+        tonerLevel: 45,
+        totalPages: 12540,
+        queuedJobs: 2
       }
     });
 
@@ -264,16 +213,20 @@ const AssetsMonitored = () => {
       interval = setInterval(() => {
         // Simulate real-time updates
         setAssets(prevAssets => 
-          prevAssets.map(asset => ({
-            ...asset,
-            metadata: {
-              ...asset.metadata,
-              cpu: Math.max(0, Math.min(100, asset.metadata.cpu + (Math.random() - 0.5) * 10)),
-              memory: Math.max(0, Math.min(100, asset.metadata.memory + (Math.random() - 0.5) * 5)),
-              networkLoad: Math.max(0, Math.min(100, (asset.metadata.networkLoad || 50) + (Math.random() - 0.5) * 15))
-            },
-            lastSeen: Math.random() > 0.9 ? new Date() : asset.lastSeen
-          }))
+          prevAssets.map(asset => {
+            if (asset.status === 'offline') return asset; // Don't update offline devices
+            
+            return {
+              ...asset,
+              metadata: {
+                ...asset.metadata,
+                cpu: asset.type === 'workstation' ? Math.max(0, Math.min(100, asset.metadata.cpu + (Math.random() - 0.5) * 10)) : asset.metadata.cpu,
+                memory: asset.type === 'workstation' ? Math.max(0, Math.min(100, asset.metadata.memory + (Math.random() - 0.5) * 5)) : asset.metadata.memory,
+                networkLoad: Math.max(0, Math.min(100, (asset.metadata.networkLoad || 30) + (Math.random() - 0.5) * 15))
+              },
+              lastSeen: Math.random() > 0.8 ? new Date() : asset.lastSeen
+            };
+          })
         );
       }, 5000);
     }
@@ -797,6 +750,7 @@ const AssetsMonitored = () => {
             </div>
           </div>
         )}
+
 
         {/* Topology View */}
         {viewMode === 'topology' && (

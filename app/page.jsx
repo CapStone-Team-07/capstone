@@ -1,4 +1,4 @@
-// Updated page.jsx with Assets Monitored Navigation
+// Updated page.jsx with Interactive Timeline Period Selector
 "use client"
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import {
@@ -42,18 +42,20 @@ import {
   ExternalLink,
   Copy,
   Star,
-  Flag
+  Flag,
+  ChevronDown
 } from 'lucide-react';
 
 // Import chart components
 import ThreatTimeline from '@hooks/components/charts/ThreatTimeline';
-import AlertDistribution from '@hooks/components/charts/AlertDistribution';
+// import AlertDistribution from '@hooks/components/charts/AlertDistribution';
 
 // Import dashboard components
 import ThreatHunting from '@hooks/components/dashboard/ThreatHunting';
 import Configuration from '@hooks/components/dashboard/Configuration';
 import Vulnerabilities from '@hooks/components/dashboard/Vulnerabilities';
 import AssetsMonitored from '@hooks/components/charts/AssetsMonitored';
+import Alerts from '@hooks/components/dashboard/Alerts';
 
 // Mock data generation functions
 const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -246,13 +248,6 @@ const LoginPage = () => {
               </div>
             )}
 
-            {/* Demo Credentials Commenting for now*/}
-            {/* <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-3 text-blue-300 text-sm">
-              <p className="font-medium mb-1">Demo Credentials:</p>
-              <p>Username: <span className="font-mono">admin</span></p>
-              <p>Password: <span className="font-mono">admin</span></p>
-            </div> */}
-
             <button
               onClick={handleSubmit}
               disabled={loading}
@@ -292,6 +287,13 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'Dashboard',
       icon: Home,
       breadcrumb: ['Dashboard', 'Overview']
+    },
+    // Here is new change
+    {
+      id: 'alerts',
+      label: 'Alerts',
+      icon: Filter,
+      breadcrumb: ['Security', 'Alerts']
     },
     {
       id: 'threats',
@@ -490,6 +492,73 @@ const Header = ({ onMenuClick }) => {
   );
 };
 
+// Time Period Selector Component
+const TimePeriodSelector = ({ selectedPeriod, onPeriodChange, isLoading }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const periods = [
+    { value: 7, label: 'Last 7 days', description: 'Past week' },
+    { value: 14, label: 'Last 14 days', description: 'Past 2 weeks' },
+    { value: 30, label: 'Last 30 days', description: 'Past month' },
+    { value: 60, label: 'Last 60 days', description: 'Past 2 months' },
+    { value: 90, label: 'Last 90 days', description: 'Past quarter' },
+    { value: 180, label: 'Last 180 days', description: 'Past 6 months' }
+  ];
+
+  const currentPeriod = periods.find(p => p.value === selectedPeriod) || periods[2];
+
+  const handlePeriodSelect = (period) => {
+    onPeriodChange(period.value);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={isLoading}
+        className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Calendar className="w-4 h-4" />
+        <span className="text-sm font-medium">{currentPeriod.label}</span>
+        {isLoading ? (
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+          <div className="p-2">
+            <div className="text-xs font-medium text-gray-400 px-2 py-1 mb-1">
+              SELECT TIME PERIOD
+            </div>
+            {periods.map((period) => (
+              <button
+                key={period.value}
+                onClick={() => handlePeriodSelect(period)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${period.value === selectedPeriod
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }`}
+              >
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">{period.label}</span>
+                  <span className="text-xs opacity-75">{period.description}</span>
+                </div>
+                {period.value === selectedPeriod && (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Recent Activity Component
 const RecentActivity = () => {
   const activities = [
@@ -559,7 +628,7 @@ const RecentActivity = () => {
   );
 };
 
-// Dashboard Overview Component
+// Dashboard Overview Component with Interactive Timeline
 const DashboardOverview = () => {
   const [metrics, setMetrics] = useState({
     activeThreats: 12,
@@ -568,10 +637,35 @@ const DashboardOverview = () => {
     assetsMonitored: 147
   });
 
+  // Timeline state management
+  const [selectedTimePeriod, setSelectedTimePeriod] = useState(30);
+  const [threatTimelineData, setThreatTimelineData] = useState([]);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
+
   const { navigate } = useNavigation();
 
-  const threatTimelineData = generateThreatTimeline(30);
+  // Generate initial data and alert distribution
   const alertDistributionData = generateAlertDistribution();
+
+  // Load timeline data when period changes
+  useEffect(() => {
+    const loadTimelineData = async () => {
+      setIsLoadingTimeline(true);
+
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const newData = generateThreatTimeline(selectedTimePeriod);
+      setThreatTimelineData(newData);
+      setIsLoadingTimeline(false);
+    };
+
+    loadTimelineData();
+  }, [selectedTimePeriod]);
+
+  const handleTimePeriodChange = (newPeriod) => {
+    setSelectedTimePeriod(newPeriod);
+  };
 
   const metricCards = [
     {
@@ -636,13 +730,12 @@ const DashboardOverview = () => {
         {metricCards.map((metric, index) => {
           const Icon = metric.icon;
           return (
-            <div 
-              key={index} 
-              className={`bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 ${
-                metric.clickable 
-                  ? 'cursor-pointer hover:border-blue-500 hover:shadow-lg hover:scale-105 transform' 
+            <div
+              key={index}
+              className={`bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 ${metric.clickable
+                  ? 'cursor-pointer hover:border-blue-500 hover:shadow-lg hover:scale-105 transform'
                   : ''
-              }`}
+                }`}
               onClick={() => handleMetricClick(metric)}
             >
               <div className="flex items-center justify-between mb-4">
@@ -675,13 +768,77 @@ const DashboardOverview = () => {
       </div>
 
       <div className="space-y-6">
-        <ThreatTimeline
-          data={threatTimelineData}
-          title="Threat Detection Timeline"
-          height={400}
-        />
+        {/* Interactive Threat Timeline with Period Selector */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Threat Detection Timeline</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Monitor threat patterns over time to identify trends and anomalies
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-400">
+                <RefreshCw className={`w-4 h-4 ${isLoadingTimeline ? 'animate-spin' : ''}`} />
+                <span>{isLoadingTimeline ? 'Updating...' : 'Live data'}</span>
+              </div>
+              <TimePeriodSelector
+                selectedPeriod={selectedTimePeriod}
+                onPeriodChange={handleTimePeriodChange}
+                isLoading={isLoadingTimeline}
+              />
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Timeline Chart Container */}
+          <div className="relative">
+            {isLoadingTimeline && (
+              <div className="absolute inset-0 bg-gray-800/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+                <div className="flex items-center space-x-3 text-white">
+                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <span>Loading timeline data...</span>
+                </div>
+              </div>
+            )}
+            <ThreatTimeline
+              data={threatTimelineData}
+              title=""
+              height={400}
+              showTitle={false}
+            />
+          </div>
+
+          {/* Timeline Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-700">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-400">
+                {threatTimelineData.reduce((sum, day) => sum + day.critical, 0)}
+              </div>
+              <div className="text-sm text-gray-400">Critical Threats</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-400">
+                {threatTimelineData.reduce((sum, day) => sum + day.high, 0)}
+              </div>
+              <div className="text-sm text-gray-400">High Priority</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-400">
+                {threatTimelineData.reduce((sum, day) => sum + day.medium, 0)}
+              </div>
+              <div className="text-sm text-gray-400">Medium Priority</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-400">
+                {threatTimelineData.reduce((sum, day) => sum + day.low, 0)}
+              </div>
+              <div className="text-sm text-gray-400">Low Priority</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Alert Distribution and Recent Activity */}
+        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AlertDistribution
             data={alertDistributionData}
             title="Alert Distribution by Type"
@@ -689,7 +846,7 @@ const DashboardOverview = () => {
             showStatistics={false}
           />
           <RecentActivity />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
@@ -816,6 +973,8 @@ const MainContent = () => {
   switch (currentView) {
     case 'dashboard':
       return <DashboardOverview />;
+    case 'alerts':
+      return <Alerts />;
     case 'threats':
       return <ThreatHunting />;
     case 'vulnerabilities':

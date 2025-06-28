@@ -33,7 +33,7 @@ import {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const total = payload.reduce((sum, entry) => sum + entry.value, 0);
-    
+
     return (
       <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-xl">
         <h4 className="text-white font-medium mb-2">{`Date: ${label}`}</h4>
@@ -41,7 +41,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           {payload.map((entry) => (
             <div key={entry.dataKey} className="flex items-center justify-between space-x-4">
               <div className="flex items-center space-x-2">
-                <div 
+                <div
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
@@ -64,16 +64,16 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 // Chart Controls Component
-const ChartControls = ({ 
-  chartType, 
-  setChartType, 
-  timeRange, 
-  setTimeRange, 
-  visibleLines, 
-  setVisibleLines, 
-  onRefresh, 
+const ChartControls = ({
+  chartType,
+  setChartType,
+  timeRange,
+  setTimeRange,
+  visibleLines,
+  setVisibleLines,
+  onRefresh,
   onExport,
-  isLoading 
+  isLoading
 }) => {
   const severityLevels = [
     { key: 'critical', label: 'Critical', color: '#ef4444' },
@@ -97,29 +97,28 @@ const ChartControls = ({
         <div className="flex bg-gray-700 rounded-lg p-1">
           <button
             onClick={() => setChartType('line')}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              chartType === 'line' 
-                ? 'bg-blue-600 text-white' 
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${chartType === 'line'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-300 hover:text-white'
-            }`}
+              }`}
           >
             Line
           </button>
           <button
             onClick={() => setChartType('area')}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              chartType === 'area' 
-                ? 'bg-blue-600 text-white' 
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${chartType === 'area'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-300 hover:text-white'
-            }`}
+              }`}
           >
             Area
           </button>
         </div>
       </div>
 
+      {/* Commenting Range Selector  */}
       {/* Time Range Selector */}
-      <div className="flex items-center space-x-2">
+      {/* <div className="flex items-center space-x-2">
         <Calendar className="w-4 h-4 text-gray-400" />
         <select
           value={timeRange}
@@ -131,7 +130,7 @@ const ChartControls = ({
           <option value="90d">Last 90 Days</option>
           <option value="1y">Last Year</option>
         </select>
-      </div>
+      </div> */}
 
       {/* Severity Toggles */}
       <div className="flex items-center space-x-2">
@@ -141,13 +140,12 @@ const ChartControls = ({
             <button
               key={level.key}
               onClick={() => toggleLine(level.key)}
-              className={`flex items-center space-x-1 px-2 py-1 rounded-md text-xs transition-colors border ${
-                visibleLines[level.key]
+              className={`flex items-center space-x-1 px-2 py-1 rounded-md text-xs transition-colors border ${visibleLines[level.key]
                   ? 'border-gray-500 bg-gray-700'
                   : 'border-gray-600 bg-gray-800 opacity-50'
-              }`}
+                }`}
             >
-              <div 
+              <div
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: level.color }}
               />
@@ -199,17 +197,17 @@ const ThreatStatistics = ({ data, timeRange }) => {
 
     const latest = data[data.length - 1] || {};
     const previous = data[data.length - 2] || {};
-    
+
     const dailyChange = latest.total - previous.total;
     const avgDaily = Math.round(totals.total / data.length);
-    
+
     // Calculate trend
     const firstHalf = data.slice(0, Math.floor(data.length / 2));
     const secondHalf = data.slice(Math.floor(data.length / 2));
-    
+
     const firstHalfAvg = firstHalf.reduce((sum, day) => sum + day.total, 0) / firstHalf.length;
     const secondHalfAvg = secondHalf.reduce((sum, day) => sum + day.total, 0) / secondHalf.length;
-    
+
     const trendDirection = secondHalfAvg > firstHalfAvg ? 'up' : 'down';
     const trendPercentage = Math.abs(((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100);
 
@@ -234,9 +232,8 @@ const ThreatStatistics = ({ data, timeRange }) => {
           </div>
           <Activity className="w-8 h-8 text-blue-400" />
         </div>
-        <div className={`flex items-center space-x-1 mt-2 text-sm ${
-          stats.dailyChange >= 0 ? 'text-red-400' : 'text-green-400'
-        }`}>
+        <div className={`flex items-center space-x-1 mt-2 text-sm ${stats.dailyChange >= 0 ? 'text-red-400' : 'text-green-400'
+          }`}>
           {stats.dailyChange >= 0 ? (
             <TrendingUp className="w-4 h-4" />
           ) : (
@@ -256,7 +253,7 @@ const ThreatStatistics = ({ data, timeRange }) => {
         </div>
         <div className="mt-2">
           <div className="w-full bg-gray-700 rounded-full h-2">
-            <div 
+            <div
               className="bg-red-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(stats.totals.critical / stats.totals.total) * 100}%` }}
             />
@@ -280,9 +277,8 @@ const ThreatStatistics = ({ data, timeRange }) => {
       <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className={`text-2xl font-bold ${
-              stats.trendDirection === 'up' ? 'text-red-400' : 'text-green-400'
-            }`}>
+            <p className={`text-2xl font-bold ${stats.trendDirection === 'up' ? 'text-red-400' : 'text-green-400'
+              }`}>
               {stats.trendDirection === 'up' ? '+' : '-'}{stats.trendPercentage}%
             </p>
             <p className="text-sm text-gray-400">Trend</p>
@@ -372,9 +368,8 @@ const ThreatTimeline = ({ data, title = "Threat Detection Timeline", height = 40
   const DataComponent = chartType === 'area' ? Area : Line;
 
   return (
-    <div className={`bg-gray-800 border border-gray-700 rounded-xl p-6 ${
-      isFullscreen ? 'fixed inset-4 z-50' : ''
-    }`}>
+    <div className={`bg-gray-800 border border-gray-700 rounded-xl p-6 ${isFullscreen ? 'fixed inset-4 z-50' : ''
+      }`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -415,12 +410,12 @@ const ThreatTimeline = ({ data, title = "Threat Detection Timeline", height = 40
             </div>
           </div>
         )}
-        
+
         <ResponsiveContainer width="100%" height={isFullscreen ? 500 : height}>
           <ChartComponent data={filteredData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               stroke="#9ca3af"
               fontSize={12}
               tickFormatter={(value) => {
@@ -430,14 +425,14 @@ const ThreatTimeline = ({ data, title = "Threat Detection Timeline", height = 40
             />
             <YAxis stroke="#9ca3af" fontSize={12} />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
+            <Legend
               wrapperStyle={{ paddingTop: '20px', color: '#fff' }}
               iconType="circle"
             />
-            
+
             {/* Reference line for average */}
             {filteredData.length > 0 && (
-              <ReferenceLine 
+              <ReferenceLine
                 y={filteredData.reduce((sum, item) => sum + (item.total || 0), 0) / filteredData.length}
                 stroke="#6b7280"
                 strokeDasharray="5 5"
@@ -464,9 +459,9 @@ const ThreatTimeline = ({ data, title = "Threat Detection Timeline", height = 40
 
             {/* Brush for zooming */}
             {filteredData.length > 7 && (
-              <Brush 
-                dataKey="date" 
-                height={30} 
+              <Brush
+                dataKey="date"
+                height={30}
                 stroke="#4b5563"
                 fill="#1f2937"
                 tickFormatter={(value) => {
