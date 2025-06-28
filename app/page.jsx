@@ -407,11 +407,11 @@ const Header = ({ onMenuClick }) => {
   const { user } = useAuth();
   const { breadcrumb } = useNavigation();
 
-  const notifications = [
-    { id: 1, type: 'critical', message: 'Critical vulnerability detected in web server', time: '2 min ago' },
-    { id: 2, type: 'warning', message: 'Unusual login activity from new location', time: '15 min ago' },
-    { id: 3, type: 'info', message: 'Weekly security report is ready', time: '1 hour ago' },
-  ];
+  // const notifications = [
+  //   { id: 1, type: 'critical', message: 'Critical vulnerability detected in web server', time: '2 min ago' },
+  //   { id: 2, type: 'warning', message: 'Unusual login activity from new location', time: '15 min ago' },
+  //   { id: 3, type: 'info', message: 'Weekly security report is ready', time: '1 hour ago' },
+  // ];
 
   return (
     <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
@@ -449,15 +449,17 @@ const Header = ({ onMenuClick }) => {
           </div>
 
           <div className="relative">
-            <button
+            {/* Bell Icon  */}
+            {/* <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2 text-gray-300 hover:text-white transition-colors"
             >
               <Bell className="w-5 h-5" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
+            </button> */}
 
-            {showNotifications && (
+            {/* Show Notifications */}
+            {/* {showNotifications && (
               <div className="absolute right-0 top-full mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
                 <div className="p-3 border-b border-gray-700">
                   <h3 className="font-medium text-white">Notifications</h3>
@@ -478,7 +480,7 @@ const Header = ({ onMenuClick }) => {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="flex items-center space-x-2">
