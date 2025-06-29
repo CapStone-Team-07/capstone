@@ -67,18 +67,17 @@ const AssetsMonitored = () => {
   const isDragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
-  // Generate simple network topology with your specific devices
+  // Generate network topology with your specific devices
   const generateNetworkAssets = useCallback(() => {
     const assetTypes = [
       { type: 'firewall', icon: Shield, color: '#ef4444', category: 'Security' },
-      { type: 'router', icon: Router, color: '#3b82f6', category: 'Network' },
-      { type: 'workstation', icon: Monitor, color: '#f59e0b', category: 'Endpoint' },
-      { type: 'printer', icon: Printer, color: '#6b7280', category: 'IoT' }
+      { type: 'switch', icon: Router, color: '#3b82f6', category: 'Network' },
+      { type: 'workstation', icon: Monitor, color: '#f59e0b', category: 'Endpoint' }
     ];
 
     const statuses = ['online', 'offline', 'warning'];
     const criticalities = ['critical', 'high', 'medium', 'low'];
-    const locations = ['Office-Floor1', 'Office-Floor2'];
+    const locations = ['Office-Floor1', 'Office-Floor2', 'IT-Room'];
 
     const assets = [];
     
@@ -90,107 +89,92 @@ const AssetsMonitored = () => {
       type: 'firewall',
       typeInfo: firewallInfo,
       x: 400,
-      y: 150,
+      y: 120,
       status: 'online',
       criticality: 'critical',
-      location: 'Office-Floor1',
+      location: 'IT-Room',
       ip: '192.168.1.1',
       lastSeen: new Date(Date.now() - 30000),
       uptime: 180,
-      connections: ['router-1'],
+      connections: ['switch-1'],
       metadata: {
         cpu: 25,
         memory: 45,
         networkLoad: 30,
         throughput: '150 Mbps',
-        rules: 245
+        rules: 245,
+        model: 'Cisco ASA 5515-X',
+        firmware: '9.12(4)'
       }
     });
 
-    // 2. Router (connects everything) - positioned below firewall
-    const routerInfo = assetTypes.find(t => t.type === 'router');
+    // 2. Switch (connects all PCs) - positioned below firewall
+    const switchInfo = assetTypes.find(t => t.type === 'switch');
     assets.push({
-      id: 'router-1',
-      name: 'Main-Router',
-      type: 'router',
-      typeInfo: routerInfo,
+      id: 'switch-1',
+      name: 'Core-Switch',
+      type: 'switch',
+      typeInfo: switchInfo,
       x: 400,
-      y: 280,
+      y: 250,
       status: 'online',
       criticality: 'high',
-      location: 'Office-Floor1',
-      ip: '192.168.1.254',
+      location: 'IT-Room',
       lastSeen: new Date(Date.now() - 15000),
       uptime: 180,
-      connections: ['pc-1', 'pc-2', 'pc-3', 'pc-4', 'pc-5', 'printer-1'],
+      connections: ['akmpc007', 'akmpc105', 'akmpc085', 'akmpc047', 'cl101', 'akmpc049', 'akmpc048'],
       metadata: {
         cpu: 15,
         memory: 32,
         networkLoad: 45,
-        connectedDevices: 6,
-        bandwidth: '1 Gbps'
+        connectedDevices: 7,
+        bandwidth: '1 Gbps',
+        model: 'Cisco Catalyst 2960-X',
+        ports: 48,
+        activeports: 7
       }
     });
 
-    // 3. Five PCs - positioned in a semi-circle around the router
-    const pcPositions = [
-      { x: 150, y: 420, name: 'PC-01' },
-      { x: 280, y: 450, name: 'PC-02' },
-      { x: 400, y: 470, name: 'PC-03' },
-      { x: 520, y: 450, name: 'PC-04' },
-      { x: 650, y: 420, name: 'PC-05' }
-    ];
+    // 3. Seven PCs with your specific names - positioned in a circular pattern around the switch
+const pcNames = [
+  { name: 'akmpc007', x: 150, y: 380, user: 'User', ip: '192.168.80.244' },
+  { name: 'akmpc105', x: 280, y: 450, user: 'User', ip: '192.168.80.36' },
+  { name: 'akmpc085', x: 400, y: 480, user: 'User', ip: '192.168.80.121' },
+  { name: 'akmpc047', x: 520, y: 450, user: 'User', ip: '192.168.80.40' },
+  { name: 'cl101', x: 650, y: 380, user: 'User', ip: '192.168.80.220' },
+  { name: 'akmpc049', x: 580, y: 300, user: 'User', ip: '192.168.80.248' },
+  { name: 'akmpc048', x: 220, y: 300, user: 'User', ip: '192.168.80.222' }
+];
 
     const workstationInfo = assetTypes.find(t => t.type === 'workstation');
-    pcPositions.forEach((pos, index) => {
-      const statusIndex = index === 2 ? 1 : 0; // PC-03 is offline for example
+    pcNames.forEach((pc, index) => {
+      // Make some PCs have different statuses for realistic simulation
+      let status = 'online';
+      
       assets.push({
-        id: `pc-${index + 1}`,
-        name: pos.name,
+        id: pc.name,
+        name: pc.name.toUpperCase(),
         type: 'workstation',
         typeInfo: workstationInfo,
-        x: pos.x,
-        y: pos.y,
-        status: index === 2 ? 'offline' : (index === 4 ? 'warning' : 'online'),
-        criticality: index < 2 ? 'medium' : 'low',
-        location: index < 3 ? 'Office-Floor1' : 'Office-Floor2',
-        ip: `192.168.1.${10 + index}`,
-        lastSeen: new Date(Date.now() - (index === 2 ? 1800000 : Math.random() * 300000)),
-        uptime: index === 2 ? 0 : Math.floor(Math.random() * 30) + 1,
-        connections: ['router-1'],
+        x: pc.x,
+        y: pc.y,
+        status: status,
+        criticality: 'low',
+        location: 'Office-Floor1',
+        ip: pc.ip,
+        lastSeen: new Date(Date.now() - (status === 'offline' ? 1800000 : Math.random() * 300000)),
+        uptime: status === 'offline' ? 0 : Math.floor(Math.random() * 30) + 1,
+        connections: ['switch-1'],
         metadata: {
-          cpu: index === 2 ? 0 : Math.floor(Math.random() * 80) + 10,
-          memory: index === 2 ? 0 : Math.floor(Math.random() * 70) + 20,
+          cpu: status === 'offline' ? 0 : Math.floor(Math.random() * 80) + 10,
+          memory: status === 'offline' ? 0 : Math.floor(Math.random() * 70) + 20,
           storage: Math.floor(Math.random() * 60) + 30,
-          user: `User${index + 1}`,
-          os: index % 2 === 0 ? 'Windows 11' : 'Windows 10'
+          user: pc.user,
+          os: index % 3 === 0 ? 'Windows 11' : (index % 3 === 1 ? 'Windows 10' : 'Windows Server 2019'),
+          domain: 'ACC.LOCAL',
+          lastLogin: status === 'offline' ? 'N/A' : new Date(Date.now() - Math.random() * 86400000).toLocaleString()
         }
       });
-    });
-
-    // 4. Printer - positioned to the side
-    const printerInfo = assetTypes.find(t => t.type === 'printer');
-    assets.push({
-      id: 'printer-1',
-      name: 'Office-Printer',
-      type: 'printer',
-      typeInfo: printerInfo,
-      x: 600,
-      y: 300,
-      status: 'online',
-      criticality: 'low',
-      location: 'Office-Floor1',
-      ip: '192.168.1.200',
-      lastSeen: new Date(Date.now() - 120000),
-      uptime: 45,
-      connections: ['router-1'],
-      metadata: {
-        model: 'HP LaserJet Pro MFP',
-        paperLevel: 75,
-        tonerLevel: 45,
-        totalPages: 12540,
-        queuedJobs: 2
-      }
     });
 
     return assets;
@@ -359,7 +343,7 @@ const AssetsMonitored = () => {
           <circle
             cx="0"
             cy="0"
-            r="28"
+            r="35"
             fill="none"
             stroke="#3b82f6"
             strokeWidth="2"
@@ -379,45 +363,56 @@ const AssetsMonitored = () => {
         <circle
           cx="0"
           cy="0"
-          r="20"
+          r="25"
           fill={asset.typeInfo.color}
           fillOpacity="0.2"
           stroke={getStatusColor(asset.status)}
-          strokeWidth="2"
+          strokeWidth="3"
         />
         
         {/* Asset icon */}
-        <foreignObject x="-8" y="-8" width="16" height="16">
-          <Icon className="w-4 h-4 text-white" />
+        <foreignObject x="-10" y="-10" width="20" height="20">
+          <Icon className="w-5 h-5 text-white" />
         </foreignObject>
         
         {/* Status indicator */}
         <circle
-          cx="15"
-          cy="-15"
-          r="4"
+          cx="18"
+          cy="-18"
+          r="5"
           fill={getStatusColor(asset.status)}
         />
         
         {/* Criticality indicator */}
         <rect
-          x="-2"
-          y="18"
-          width="4"
-          height="8"
+          x="-3"
+          y="22"
+          width="6"
+          height="10"
           fill={getCriticalityColor(asset.criticality)}
-          rx="2"
+          rx="3"
         />
         
         {/* Asset name */}
         <text
           x="0"
-          y="35"
+          y="45"
           textAnchor="middle"
-          className="fill-white text-xs font-medium"
-          style={{ fontSize: '10px' }}
+          className="fill-white text-sm font-medium"
+          style={{ fontSize: '12px' }}
         >
           {asset.name}
+        </text>
+        
+        {/* IP Address */}
+        <text
+          x="0"
+          y="58"
+          textAnchor="middle"
+          className="fill-gray-400 text-xs"
+          style={{ fontSize: '10px' }}
+        >
+          {asset.ip}
         </text>
       </g>
     );
@@ -431,9 +426,9 @@ const AssetsMonitored = () => {
       x2={connection.target.x}
       y2={connection.target.y}
       stroke="#4b5563"
-      strokeWidth="1"
-      strokeDasharray="2,2"
-      opacity="0.6"
+      strokeWidth="2"
+      strokeDasharray="3,3"
+      opacity="0.7"
     />
   );
 
@@ -631,13 +626,13 @@ const AssetsMonitored = () => {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Assets Monitored</h1>
+          <h1 className="text-2xl font-bold text-white">Network Assets Monitor</h1>
           <p className="text-gray-400 mt-1">
-            Network topology view of {filteredAssets.length} monitored assets
+            Monitoring {filteredAssets.length} network assets across your infrastructure
           </p>
         </div>
         <div className="flex items-center space-x-3">
