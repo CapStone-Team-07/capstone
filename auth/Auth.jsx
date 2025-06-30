@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.193:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.80.247:5000';
 
 // Auth API Service
 class AuthService {

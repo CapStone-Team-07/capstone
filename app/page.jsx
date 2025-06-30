@@ -302,17 +302,17 @@ const Sidebar = ({ isOpen, onClose }) => {
       permissions: []
     },
     {
-      id: 'alerts',
-      label: 'Alerts',
+      id: 'incidents',
+      label: 'Incidents',
       icon: AlertTriangle,
-      breadcrumb: ['Security', 'Alerts'],
+      breadcrumb: ['Security', 'Incidents'],
       permissions: ['threats:read']
     },
     {
       id: 'threats',
-      label: 'Threat Hunting',
+      label: 'Threats',
       icon: ShieldMinus,
-      breadcrumb: ['Security', 'Threat Hunting'],
+      breadcrumb: ['Security', 'Threats'],
       permissions: ['threats:read']
     },
     {
@@ -392,7 +392,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               const isActive = currentView === item.id;
               const hasItemAccess = hasAccess(item);
 
-              if (!hasItemAccess) return null;
+              // if (!hasItemAccess) return null; // Uncomment to hide inaccessible items (only admin)
 
               return (
                 <li key={item.id}>
@@ -756,7 +756,7 @@ const DashboardOverview = () => {
       color: 'red',
       icon: AlertTriangle,
       clickable: hasPermission('threats:read'),
-      onClick: () => navigate('threats', ['Security', 'Threat Hunting'])
+      onClick: () => navigate('threats', ['Security', 'Threats'])
     },
     {
       title: 'Critical Vulnerabilities',
@@ -986,7 +986,7 @@ const DashboardOverview = () => {
                 <span>Run Security Scan</span>
               </button>
               <button
-                onClick={() => navigate('threats', ['Security', 'Threat Hunting'])}
+                onClick={() => navigate('threats', ['Security', 'Threats'])}
                 className="w-full flex items-center space-x-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-white transition-colors"
               >
                 <AlertTriangle className="w-4 h-4" />
@@ -1049,7 +1049,7 @@ const MainContent = () => {
   switch (currentView) {
     case 'dashboard':
       return <DashboardOverview />;
-    case 'alerts':
+    case 'incidents':
       return <Alerts />;
     case 'threats':
       return <ThreatHunting />;

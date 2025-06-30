@@ -1051,7 +1051,7 @@ const AssetsMonitored = () => {
   const dragStart = useRef({ x: 0, y: 0 });
 
   // API Configuration
-  const API_BASE_URL = 'http://192.168.0.193:5000/api';
+  const API_BASE_URL = 'http://192.168.80.247:5000/api';
 
   // Asset type mapping with icons and colors
   const assetTypeMap = {

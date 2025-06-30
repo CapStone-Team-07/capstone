@@ -1138,7 +1138,7 @@ const ThreatHunting = () => {
      {/* Header */}
      <div className="flex items-center justify-between">
        <div>
-         <h1 className="text-2xl font-bold text-white">Threat Hunting</h1>
+         <h1 className="text-2xl font-bold text-white">Threats</h1>
          <p className="text-gray-400 mt-1">Advanced threat analysis and investigation</p>
        </div>
        <div className="flex items-center space-x-3">

@@ -1270,8 +1270,8 @@ const Alerts = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Wazuh Security Alerts</h1>
-          <p className="text-gray-400 mt-1 text-sm sm:text-base">Monitor and analyze Wazuh SIEM alerts in real-time</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Security Incidents</h1>
+          {/* <p className="text-gray-400 mt-1 text-sm sm:text-base">Monitor and analyze Wazuh SIEM alerts in real-time</p> */}
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <div className="flex items-center space-x-2 text-sm text-gray-400">
