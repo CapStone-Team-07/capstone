@@ -1,4 +1,4 @@
-// Updated page.jsx with Interactive Timeline Period Selector
+// Updated page.jsx with Backend Authentication
 "use client"
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import {
@@ -47,9 +47,11 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+// Import authentication system
+import { AuthProvider, useAuth, AuthLoadingSpinner } from '@hooks/auth/Auth';
+
 // Import chart components
 import ThreatTimeline from '@hooks/components/charts/ThreatTimeline';
-// import AlertDistribution from '@hooks/components/charts/AlertDistribution';
 
 // Import dashboard components
 import ThreatHunting from '@hooks/components/dashboard/ThreatHunting';
@@ -99,54 +101,6 @@ const generateAlertDistribution = () => {
   }));
 };
 
-// Authentication Context
-const AuthContext = createContext();
-
-const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const login = async (credentials) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (credentials.username === 'admin' && credentials.password === 'admin') {
-      setIsAuthenticated(true);
-      setUser({
-        name: 'Security Administrator',
-        email: 'admin@cybersec.com',
-        role: 'SOC Manager',
-        avatar: '👤'
-      });
-      setLoading(false);
-      return { success: true };
-    }
-
-    setLoading(false);
-    return { success: false, error: 'Invalid credentials' };
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
 // Navigation Context for routing
 const NavigationContext = createContext();
 
@@ -174,21 +128,33 @@ const useNavigation = () => {
   return context;
 };
 
-// Login Component
+// Enhanced Login Component with Backend Integration
 const LoginPage = () => {
-  const [credentials, setCredentials] = useState({ username: 'admin', password: 'admin' });
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { login, loading } = useAuth();
+  // const [rememberMe, setRememberMe] = useState(false);
+  const { login, loginLoading } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
+    // Basic validation
+    if (!credentials.username.trim() || !credentials.password.trim()) {
+      setError('Please enter both username and password');
+      return;
+    }
+
     const result = await login(credentials);
     if (!result.success) {
-      setError(result.error);
+      setError(result.error || 'Login failed. Please check your credentials.');
     }
+  };
+
+  // Pre-fill demo credentials for testing
+  const handleDemoLogin = () => {
+    setCredentials({ username: 'Arif', password: 'password123' });
   };
 
   return (
@@ -209,7 +175,7 @@ const LoginPage = () => {
         </div>
 
         <div className="bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl p-8 shadow-2xl">
-          <div className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
               <input
@@ -219,6 +185,7 @@ const LoginPage = () => {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
                 placeholder="Enter your username"
                 required
+                disabled={loginLoading}
               />
             </div>
 
@@ -232,29 +199,55 @@ const LoginPage = () => {
                   className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors pr-12"
                   placeholder="Enter your password"
                   required
+                  disabled={loginLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  disabled={loginLoading}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
+            {/* Remember me and Forget Password
+            <div className="flex items-center justify-between">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-gray-600 text-blue-600 focus:ring-blue-500"
+                  disabled={loginLoading}
+                />
+                <span className="text-sm text-gray-400">Remember me</span>
+              </label>
+              <button
+                type="button"
+                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                disabled={loginLoading}
+              >
+                Forgot password?
+              </button>
+            </div> */}
+
             {error && (
               <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 text-red-300 text-sm">
-                {error}
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>{error}</span>
+                </div>
               </div>
             )}
 
             <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              type="submit"
+              disabled={loginLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
             >
-              {loading ? (
+              {loginLoading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Authenticating...</span>
@@ -266,7 +259,25 @@ const LoginPage = () => {
                 </>
               )}
             </button>
-          </div>
+
+            {/* Demo Credentials Helper */}
+            <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-300 font-medium text-sm mb-1">Demo Account</p>
+                  <p className="text-blue-400 text-xs">Username: Arif • Password: password123</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+                  disabled={loginLoading}
+                >
+                  Use Demo
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
 
         <div className="text-center mt-6 text-gray-400 text-sm">
@@ -277,9 +288,9 @@ const LoginPage = () => {
   );
 };
 
-// Sidebar Component with Navigation
+// Enhanced Sidebar Component with User Info
 const Sidebar = ({ isOpen, onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, getRoleDisplayName } = useAuth();
   const { currentView, navigate } = useNavigation();
 
   const navigationItems = [
@@ -287,50 +298,70 @@ const Sidebar = ({ isOpen, onClose }) => {
       id: 'dashboard',
       label: 'Dashboard',
       icon: Home,
-      breadcrumb: ['Dashboard', 'Overview']
+      breadcrumb: ['Dashboard', 'Overview'],
+      permissions: []
     },
-    // Here is new change
     {
       id: 'alerts',
       label: 'Alerts',
       icon: AlertTriangle,
-      breadcrumb: ['Security', 'Alerts']
+      breadcrumb: ['Security', 'Alerts'],
+      permissions: ['threats:read']
     },
     {
       id: 'threats',
       label: 'Threat Hunting',
       icon: ShieldMinus,
-      breadcrumb: ['Security', 'Threat Hunting']
+      breadcrumb: ['Security', 'Threat Hunting'],
+      permissions: ['threats:read']
     },
     {
       id: 'vulnerabilities',
       label: 'Vulnerabilities',
       icon: Activity,
-      breadcrumb: ['Security', 'Vulnerabilities']
+      breadcrumb: ['Security', 'Vulnerabilities'],
+      permissions: ['vulnerabilities:read']
     },
     {
       id: 'assets',
       label: 'Assets Monitored',
       icon: Server,
-      breadcrumb: ['Assets', 'Monitored Assets']
+      breadcrumb: ['Assets', 'Monitored Assets'],
+      permissions: ['assets:read']
     },
     {
       id: 'config',
       label: 'Configuration',
       icon: Wrench,
-      breadcrumb: ['System', 'Configuration']
+      breadcrumb: ['System', 'Configuration'],
+      permissions: ['admin']
     },
     {
       id: 'reports',
       label: 'Reports',
       icon: FileText,
-      breadcrumb: ['Analytics', 'Reports']
+      breadcrumb: ['Analytics', 'Reports'],
+      permissions: ['reports:read']
     },
   ];
 
   const handleNavigation = (item) => {
     navigate(item.id, item.breadcrumb);
     onClose(); // Close sidebar on mobile after navigation
+  };
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  // Check if user has access to navigation item
+  const hasAccess = (item) => {
+    if (!item.permissions || item.permissions.length === 0) return true;
+    
+    return item.permissions.some(permission => {
+      if (permission === 'admin') return user?.role === 'admin';
+      return user?.permissions?.includes(permission);
+    });
   };
 
   return (
@@ -359,6 +390,9 @@ const Sidebar = ({ isOpen, onClose }) => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
+              const hasItemAccess = hasAccess(item);
+
+              if (!hasItemAccess) return null;
 
               return (
                 <li key={item.id}>
@@ -380,16 +414,35 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         <div className="p-4 border-t border-gray-700">
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-bold">
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-              <p className="text-xs text-gray-400 truncate">{user?.role}</p>
+              <p className="text-sm font-medium text-white truncate">
+                {user?.fullName || user?.username}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{getRoleDisplayName()}</p>
             </div>
           </div>
+          
+          {/* User status indicators */}
+          <div className="flex items-center space-x-2 mb-3 text-xs">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-gray-400">Online</span>
+            </div>
+            {user?.twoFactorEnabled && (
+              <div className="flex items-center space-x-1">
+                <Shield className="w-3 h-3 text-green-400" />
+                <span className="text-gray-400">2FA</span>
+              </div>
+            )}
+          </div>
+
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full flex items-center space-x-2 px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
@@ -401,17 +454,17 @@ const Sidebar = ({ isOpen, onClose }) => {
   );
 };
 
-// Header Component with Dynamic Breadcrumb
+// Enhanced Header Component with User Info
 const Header = ({ onMenuClick }) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const { user } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, logout, getRoleDisplayName } = useAuth();
   const { breadcrumb } = useNavigation();
 
-  // const notifications = [
-  //   { id: 1, type: 'critical', message: 'Critical vulnerability detected in web server', time: '2 min ago' },
-  //   { id: 2, type: 'warning', message: 'Unusual login activity from new location', time: '15 min ago' },
-  //   { id: 3, type: 'info', message: 'Weekly security report is ready', time: '1 hour ago' },
-  // ];
+  const handleLogout = async () => {
+    await logout();
+    setShowUserMenu(false);
+  };
 
   return (
     <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
@@ -448,46 +501,69 @@ const Header = ({ onMenuClick }) => {
             </div>
           </div>
 
+          {/* User Profile Dropdown */}
           <div className="relative">
-            {/* Bell Icon  */}
-            {/* <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-300 hover:text-white transition-colors"
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
             >
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button> */}
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </span>
+              </div>
+              <span className="hidden md:block text-sm">{user?.firstName || user?.username}</span>
+              {/* Downside ^ */}
+              {/* <ChevronDown className="w-4 h-4" /> */}
+            </button>
 
-            {/* Show Notifications */}
-            {/* {showNotifications && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                <div className="p-3 border-b border-gray-700">
-                  <h3 className="font-medium text-white">Notifications</h3>
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div key={notification.id} className="p-3 border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
-                      <div className="flex items-start space-x-3">
-                        <div className={`w-2 h-2 rounded-full mt-2 ${notification.type === 'critical' ? 'bg-red-500' :
-                          notification.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-                          }`} />
-                        <div className="flex-1">
-                          <p className="text-sm text-white">{notification.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
-                        </div>
-                      </div>
+            {/* Hiding Dropdown menu
+            {showUserMenu && (
+              <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                <div className="p-4 border-b border-gray-700">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </span>
                     </div>
-                  ))}
+                    <div>
+                      <p className="text-white font-medium">{user?.fullName}</p>
+                      <p className="text-sm text-gray-400">{user?.email}</p>
+                      <p className="text-xs text-blue-400">{getRoleDisplayName()}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-2">
+                  <div className="px-3 py-2 text-xs text-gray-400 font-medium">
+                    ACCOUNT SETTINGS
+                  </div>
+                  <button className="w-full flex items-center space-x-2 px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded transition-colors">
+                    <User className="w-4 h-4" />
+                    <span>Profile Settings</span>
+                  </button>
+                  <button className="w-full flex items-center space-x-2 px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded transition-colors">
+                    <Settings className="w-4 h-4" />
+                    <span>Preferences</span>
+                  </button>
+                  <button className="w-full flex items-center space-x-2 px-3 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded transition-colors">
+                    <Shield className="w-4 h-4" />
+                    <span>Security</span>
+                  </button>
+                </div>
+                
+                <div className="p-2 border-t border-gray-700">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-2 px-3 py-2 text-red-400 hover:bg-red-900/20 hover:text-red-300 rounded transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </button>
                 </div>
               </div>
             )} */}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <span className="hidden md:block text-sm text-white">{user?.name}</span>
           </div>
         </div>
       </div>
@@ -646,6 +722,7 @@ const DashboardOverview = () => {
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
 
   const { navigate } = useNavigation();
+  const { user, hasPermission } = useAuth();
 
   // Generate initial data and alert distribution
   const alertDistributionData = generateAlertDistribution();
@@ -678,7 +755,8 @@ const DashboardOverview = () => {
       trend: 'up',
       color: 'red',
       icon: AlertTriangle,
-      clickable: false
+      clickable: hasPermission('threats:read'),
+      onClick: () => navigate('threats', ['Security', 'Threat Hunting'])
     },
     {
       title: 'Critical Vulnerabilities',
@@ -687,7 +765,8 @@ const DashboardOverview = () => {
       trend: 'down',
       color: 'yellow',
       icon: XCircle,
-      clickable: false
+      clickable: hasPermission('vulnerabilities:read'),
+      onClick: () => navigate('vulnerabilities', ['Security', 'Vulnerabilities'])
     },
     {
       title: 'Security Score',
@@ -705,7 +784,7 @@ const DashboardOverview = () => {
       trend: 'up',
       color: 'blue',
       icon: Activity,
-      clickable: true,
+      clickable: hasPermission('assets:read'),
       onClick: () => navigate('assets', ['Assets', 'Monitored Assets'])
     }
   ];
@@ -721,7 +800,9 @@ const DashboardOverview = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Security Dashboard</h1>
-          <p className="text-gray-400 mt-1">Welcome back! Here's your security overview.</p>
+          <p className="text-gray-400 mt-1">
+            Welcome back, {user?.firstName}! Here's your security overview.
+          </p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-400">
           <Clock className="w-4 h-4" />
@@ -840,17 +921,6 @@ const DashboardOverview = () => {
           </div>
         </div>
 
-        {/* Alert Distribution and Recent Activity */}
-        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AlertDistribution
-            data={alertDistributionData}
-            title="Alert Distribution by Type"
-            height={350}
-            showStatistics={false}
-          />
-          <RecentActivity />
-        </div> */}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4">System Health</h3>
@@ -915,7 +985,10 @@ const DashboardOverview = () => {
                 <Shield className="w-4 h-4" />
                 <span>Run Security Scan</span>
               </button>
-              <button className="w-full flex items-center space-x-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-white transition-colors">
+              <button
+                onClick={() => navigate('threats', ['Security', 'Threat Hunting'])}
+                className="w-full flex items-center space-x-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg text-white transition-colors"
+              >
                 <AlertTriangle className="w-4 h-4" />
                 <span>View All Threats</span>
               </button>
@@ -996,8 +1069,14 @@ const MainContent = () => {
 // Main App Component
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return <AuthLoadingSpinner />;
+  }
+
+  // Show login page if not authenticated
   if (!isAuthenticated) {
     return <LoginPage />;
   }
