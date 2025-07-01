@@ -1273,7 +1273,7 @@
                       onClick={() => handleSort('sourceIP')}
                       className="flex items-center space-x-1 text-gray-300 hover:text-white font-medium text-sm"
                     >
-                      <span>Source IP</span>
+                      <span>Agent IP</span>
                       <ArrowUpDown className="w-4 h-4" />
                     </button>
                   </th>
@@ -1358,7 +1358,8 @@
                       </td>
                       <td className="p-3">
                         <div className="flex items-center space-x-2">
-                          <span className="font-mono text-sm text-white">{threat.sourceIP}</span>
+                          {/* Source IP changed to Agent IP  */}
+                          <span className="font-mono text-sm text-white">{threat.rawData.agent.ip}</span>
                           {threat.sourceIP !== 'N/A' && (
                             <button
                               onClick={() => navigator.clipboard.writeText(threat.sourceIP)}
