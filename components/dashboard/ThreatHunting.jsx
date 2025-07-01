@@ -88,7 +88,7 @@
                 {
                   bool: {
                     should: [
-                      { range: { "rule.level": { gte: 12 } } }
+                      { range: { "rule.level": { gte: 10 } } }
                     ],
                     minimum_should_match: 1
                   }
@@ -105,7 +105,7 @@
             }
           },
           sort: [
-            { "@timestamp": { order: "desc" } }
+            { "@timestamp": { order: "asc" } }
           ],
           size: 100
         };
