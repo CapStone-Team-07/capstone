@@ -721,7 +721,7 @@
                   <div className={`w-3 h-3 rounded-full ${getSeverityColor(threat.severity).split(' ')[1]}`} />
                   <div>
                     <h2 className="text-xl font-bold text-white">{threat.title}</h2>
-                    <p className="text-sm text-gray-400">Wazuh Alert ID: {threat.id}</p>
+                    <p className="text-sm text-gray-400">Wazuh Threat ID: {threat.id}</p>
                   </div>
                 </div>
                 <button
@@ -765,7 +765,7 @@
                   {/* Wazuh Information */}
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-white mb-3">Wazuh Alert Information</h3>
+                      <h3 className="text-lg font-semibold text-white mb-3">Wazuh Threat Information</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-400">Severity:</span>
@@ -800,6 +800,10 @@
                         <div className="flex justify-between">
                           <span className="text-gray-400">Confidence:</span>
                           <span className="text-white">{threat.confidence}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">IOCs:</span>
+                          <span className="text-white">{threat.iocs}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Category:</span>
@@ -946,7 +950,7 @@
                         <AlertTriangle className="w-4 h-4 text-blue-400" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-white font-medium">Alert Detected by Wazuh</p>
+                        <p className="text-white font-medium">Threat Detected by Wazuh</p>
                         <p className="text-gray-400 text-sm">Rule {threat.ruleId} triggered - Level {threat.ruleLevel}</p>
                         <p className="text-gray-500 text-xs">{new Date(threat.timestamp).toLocaleString()}</p>
                       </div>
@@ -1228,7 +1232,7 @@
                       onClick={() => handleSort('id')}
                       className="flex items-center space-x-1 text-gray-300 hover:text-white font-medium text-sm"
                     >
-                      <span>Alert ID</span>
+                      <span>Threat ID</span>
                       <ArrowUpDown className="w-4 h-4" />
                     </button>
                   </th>
