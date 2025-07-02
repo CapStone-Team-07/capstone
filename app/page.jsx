@@ -44,7 +44,9 @@ import {
   Star,
   Flag,
   ShieldMinus,
-  ChevronDown
+  ChevronDown,
+  AirVent,
+  AnchorIcon
 } from 'lucide-react';
 
 // Import authentication system
@@ -59,6 +61,8 @@ import Configuration from '@hooks/components/dashboard/Configuration';
 import Vulnerabilities from '@hooks/components/dashboard/Vulnerabilities';
 import AssetsMonitored from '@hooks/components/charts/AssetsMonitored';
 import Alerts from '@hooks/components/dashboard/Alerts';
+
+import AIAlertAnalyst from '@hooks/components/dashboard/AIAlertAnalyst';
 
 // Mock data generation functions
 const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -336,6 +340,20 @@ const Sidebar = ({ isOpen, onClose }) => {
       breadcrumb: ['System', 'Configuration'],
       permissions: ['admin']
     },
+    // {
+    //   id: 'aidashboard',
+    //   label: 'AI Dashboard',
+    //   icon: AnchorIcon,
+    //   breadcrumb: ['System', 'AI Dashboard'],
+    //   permissions: ['']
+    // },
+    {
+      id: 'aianalysis',
+      label: 'AI Analysis',
+      icon: AnchorIcon,
+      breadcrumb: ['System', 'AI Analysis'],
+      permissions: ['']
+    },
     {
       id: 'reports',
       label: 'Reports',
@@ -357,7 +375,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   // Check if user has access to navigation item
   const hasAccess = (item) => {
     if (!item.permissions || item.permissions.length === 0) return true;
-    
+
     return item.permissions.some(permission => {
       if (permission === 'admin') return user?.role === 'admin';
       return user?.permissions?.includes(permission);
@@ -426,7 +444,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <p className="text-xs text-gray-400 truncate">{getRoleDisplayName()}</p>
             </div>
           </div>
-          
+
           {/* User status indicators */}
           <div className="flex items-center space-x-2 mb-3 text-xs">
             <div className="flex items-center space-x-1">
@@ -618,8 +636,8 @@ const TimePeriodSelector = ({ selectedPeriod, onPeriodChange, isLoading }) => {
                 key={period.value}
                 onClick={() => handlePeriodSelect(period)}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${period.value === selectedPeriod
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                   }`}
               >
                 <div className="flex flex-col items-start">
@@ -817,8 +835,8 @@ const DashboardOverview = () => {
             <div
               key={index}
               className={`bg-gray-800 border border-gray-700 rounded-xl p-6 transition-all duration-200 ${metric.clickable
-                  ? 'cursor-pointer hover:border-blue-500 hover:shadow-lg hover:scale-105 transform'
-                  : ''
+                ? 'cursor-pointer hover:border-blue-500 hover:shadow-lg hover:scale-105 transform'
+                : ''
                 }`}
               onClick={() => handleMetricClick(metric)}
             >
@@ -1057,6 +1075,8 @@ const MainContent = () => {
       return <Vulnerabilities />;
     case 'config':
       return <Configuration />;
+    case 'aianalysis':
+      return <AIAlertAnalyst />;
     case 'reports':
       return <ReportsView />;
     case 'assets':

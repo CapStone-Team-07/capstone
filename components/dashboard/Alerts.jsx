@@ -1448,7 +1448,7 @@ const Alerts = () => {
             <thead className="bg-gray-700/50">
               <tr>
                 <th className="p-3 text-left">
-                  <input
+                  {/* <input
                     type="checkbox"
                     checked={selectedAlerts.size === paginatedAlerts.length && paginatedAlerts.length > 0}
                     onChange={(e) => {
@@ -1459,7 +1459,7 @@ const Alerts = () => {
                       }
                     }}
                     className="rounded border-gray-600 text-blue-600 focus:ring-blue-500"
-                  />
+                  /> */}
                 </th>
                 <th className="p-3 text-left">
                   <button
@@ -1543,7 +1543,7 @@ const Alerts = () => {
                     }`}
                   >
                     <td className="p-3">
-                      <input
+                      {/* <input
                         type="checkbox"
                         checked={selectedAlerts.has(alert.id)}
                         onChange={(e) => {
@@ -1556,7 +1556,7 @@ const Alerts = () => {
                           setSelectedAlerts(newSelected);
                         }}
                         className="rounded border-gray-600 text-blue-600 focus:ring-blue-500"
-                      />
+                      /> */}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center space-x-2">
