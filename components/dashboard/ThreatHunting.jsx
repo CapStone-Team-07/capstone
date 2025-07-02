@@ -1,6 +1,7 @@
   import React, { useState, useEffect, useMemo } from 'react';
   import {
     Search,
+    Brain,
     Filter,
     Download,
     RefreshCw,
@@ -88,7 +89,7 @@
                 {
                   bool: {
                     should: [
-                      { range: { "rule.level": { gte: 10 } } }
+                      { range: { "rule.level": { gte: 8 } } }
                     ],
                     minimum_should_match: 1
                   }
@@ -105,7 +106,7 @@
             }
           },
           sort: [
-            { "@timestamp": { order: "asc" } }
+            { "@timestamp": { order: "desc" } }
           ],
           size: 100
         };
@@ -737,6 +738,7 @@
                 {[
                   { id: 'details', label: 'Details', icon: Info },
                   { id: 'timeline', label: 'Timeline', icon: Clock },
+                  { id: 'threat-intel', label: 'Threat Intel', icon: Brain },
                   { id: 'actions', label: 'Actions', icon: Zap }
                 ].map(tab => {
                   const Icon = tab.icon;
