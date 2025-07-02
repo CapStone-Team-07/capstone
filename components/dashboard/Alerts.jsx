@@ -666,7 +666,7 @@ const Alerts = () => {
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {wazuhRuleGroups.slice(0, 10).map(group => (
               <label key={group} className="flex items-center space-x-2">
-                <input
+                {/* <input
                   type="checkbox"
                   checked={filters.rule_groups.includes(group)}
                   onChange={(e) => {
@@ -677,7 +677,7 @@ const Alerts = () => {
                     }
                   }}
                   className="rounded border-gray-600 text-blue-600 focus:ring-blue-500"
-                />
+                /> */}
                 <span className="text-sm text-gray-300">{group}</span>
               </label>
             ))}
@@ -1426,11 +1426,11 @@ const Alerts = () => {
                   disabled={loading}
                   className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 text-white text-sm rounded transition-colors flex items-center space-x-1"
                 >
-                  {loading ? (
+                  {/* {loading ? (
                     <RefreshCw className="w-3 h-3 animate-spin" />
                   ) : (
                     <Archive className="w-3 h-3" />
-                  )}
+                  )} */}
                   <span>Archive</span>
                 </button>
               </div>

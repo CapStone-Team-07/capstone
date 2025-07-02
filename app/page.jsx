@@ -1,4 +1,3 @@
-// Updated page.jsx with Backend Authentication
 "use client"
 import React, { useState, createContext, useContext, useEffect } from 'react';
 import {
@@ -730,8 +729,8 @@ const DashboardOverview = () => {
   const [metrics, setMetrics] = useState({
     activeThreats: 12,
     criticalVulns: 8,
-    securityScore: 87,
-    assetsMonitored: 147
+    securityScore: 75,
+    assetsMonitored: 6
   });
 
   // Timeline state management
@@ -789,8 +788,6 @@ const DashboardOverview = () => {
     {
       title: 'Security Score',
       value: `${metrics.securityScore}%`,
-      change: '+5%',
-      trend: 'up',
       color: 'green',
       icon: CheckCircle,
       clickable: false
@@ -798,8 +795,6 @@ const DashboardOverview = () => {
     {
       title: 'Assets Monitored',
       value: metrics.assetsMonitored.toLocaleString(),
-      change: '+47',
-      trend: 'up',
       color: 'blue',
       icon: Activity,
       clickable: hasPermission('assets:read'),
@@ -850,8 +845,8 @@ const DashboardOverview = () => {
                 </div>
                 <div className={`flex items-center space-x-1 text-sm ${metric.trend === 'up' ? 'text-green-400' : 'text-red-400'
                   }`}>
-                  <TrendingUp className={`w-4 h-4 ${metric.trend === 'down' ? 'rotate-180' : ''}`} />
-                  <span>{metric.change}</span>
+                  {/* <TrendingUp className={`w-4 h-4 ${metric.trend === 'down' ? 'rotate-180' : ''}`} /> */}
+                  {/* <span>{metric.change}</span> */}
                 </div>
               </div>
               <div>
