@@ -54,6 +54,7 @@ const AIAlertAnalyst = () => {
   const [analysisResults, setAnalysisResults] = useState(null);
   const [analysisHistory, setAnalysisHistory] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('ssh_bruteforce');
+  const [selectedAlerts, setSelectedAlerts] = useState([]);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [apiSettings, setApiSettings] = useState({
     temperature: 0.3,
@@ -211,6 +212,34 @@ const AIAlertAnalyst = () => {
     }
   };
 
+  const analyzeAlerts = async () => {
+    if (selectedAlerts.length === 0) return;
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/api/chatbot/analyze-alerts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          alertIds: selectedAlerts,
+          query: 'Analyze these security alerts for patterns, threats, and recommended actions'
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setAnalysis(data.data.analysis);
+      }
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setAnalysis('Failed to analyze alerts. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
   // Initialize with default template
   useEffect(() => {
     if (selectedTemplate && alertTemplates[selectedTemplate]) {
