@@ -63,6 +63,7 @@ import AssetsMonitored from '@hooks/components/charts/AssetsMonitored';
 import Alerts from '@hooks/components/dashboard/Alerts';
 
 import AIAlertAnalyst from '@hooks/components/dashboard/AIAlertAnalyst';
+import SecurityChatbot from '@hooks/components/dashboard/SecurityChatbot';
 
 // Mock data generation functions
 const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -1113,8 +1114,11 @@ const App = () => {
             </main>
           </div>
         </div>
+        <SecurityChatbot/>
       </div>
+
     </NavigationProvider>
+
   );
 };
 
