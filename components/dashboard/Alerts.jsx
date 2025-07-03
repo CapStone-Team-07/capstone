@@ -54,6 +54,7 @@ import {
   Archive,
   Zap
 } from 'lucide-react';
+import axios from 'axios';
 
 const Alerts = () => {
   // State management
@@ -109,6 +110,7 @@ const Alerts = () => {
     { id: 'user-001', name: 'Fidan Huseynova', role: 'Senior SOC Analyst', email: 'f.huseynova@company.com', avatar: '👧' },
     { id: 'user-002', name: 'Hasan Hamidov', role: 'SOC Analyst', email: 'h.hamidov@company.com', avatar: '👨🏿‍🦲' },
     { id: 'user-003', name: 'Gulyaz Ismayilzada', role: 'Security Engineer', email: 'g.ismayilzada@company.com', avatar: '👩‍💼' },
+    { id: 'user-004', name: 'Elvin Suleymanov', role: 'Security Engineer', email: 'elvin@company.com', avatar: '🗽' }
     // { id: 'user-004', name: 'Emily Davis', role: 'Incident Responder', email: 'emily.davis@company.com', avatar: '👩‍💼' },
     // { id: 'user-005', name: 'David Wilson', role: 'Threat Analyst', email: 'david.wilson@company.com', avatar: '🧔🏽‍♂️' },
     // { id: 'user-006', name: 'Lisa Rodriguez', role: 'SOC Manager', email: 'lisa.rodriguez@company.com', avatar: '👩‍💻' }
@@ -243,9 +245,39 @@ const Alerts = () => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);
   };
-
+  const userChatIdMapped = {
+    'Elvin Suleymanov': 1530374052,
+    'Gulyaz Ismayilzada': 1947654367,
+    'Julius Vault': 1062394539,
+    'Arif Mamadov': 1947715194,
+    'Fidan Huseynova': 966645173
+  };
   // Assign alert to user
   const handleAssignAlert = async (alertId, user) => {
+    const token = localStorage.getItem('auth_token'); 
+    console.log(user.name, userChatIdMapped);
+    
+    const data = {
+      chat_id: userChatIdMapped[user.name],
+      text: `Hello you've been assigned to incident. Alert ID:${alertId}`
+    };
+    console.log(data);
+    
+  try {
+    const response = await axios.post(
+      'http://localhost:5000/api/telegram/sendTelegram',
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` // Add the token to the Authorization header
+        }
+      }
+    );
+    console.log('Message sent successfully:', response.data);
+  } catch (error) {
+    console.error('Error sending message:', error.message);
+  }
     try {
       setAlerts(prevAlerts => 
         prevAlerts.map(alert => 
